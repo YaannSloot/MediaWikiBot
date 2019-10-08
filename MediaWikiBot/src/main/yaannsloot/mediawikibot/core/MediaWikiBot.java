@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.io.FileSystemUtils;
@@ -17,6 +18,9 @@ import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import main.yaannsloot.mediawikibot.exceptions.WikiProjectNotFoundException;
+import main.yaannsloot.mediawikibot.tools.StatFetcher;
 
 public class MediaWikiBot {
 
@@ -164,6 +168,17 @@ public class MediaWikiBot {
 			
 			if(doShutdown) {
 				System.exit(0);
+			}
+			
+			StatFetcher test = new StatFetcher();
+			
+			try {
+				List<String> projects = test.getMediaWikis();
+				List<String> endpoints = test.getProjectEndpoints("gamepedias", "English");
+				endpoints.forEach(pp -> System.out.println(pp));
+			} catch (WikiProjectNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 			
 		} catch (IOException e) {
