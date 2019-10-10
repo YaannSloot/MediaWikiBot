@@ -11,8 +11,14 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+import java.util.concurrent.Future;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -151,6 +157,9 @@ public class StatFetcher {
 			}
 
 			logger.info(wikiLinks.size() + " wiki links found. Verifying endpoints...");
+			
+			ExecutorService executor = Executors.newFixedThreadPool(10);
+			
 			class verifyThread implements Runnable {
 				private int urlNumber;
 
@@ -223,20 +232,21 @@ public class StatFetcher {
 					}
 				}
 			}
-			List<Thread> threadStack = new ArrayList<Thread>();
+			
+			Collection<Future<?>> futures = new LinkedList<Future<?>>();
+			
 			for (int i = 0; i < wikiLinks.size(); i++) {
-				threadStack.add(new Thread(new verifyThread(i)));
+				futures.add(executor.submit(new verifyThread(i)));
 			}
-			for (Thread t : threadStack) {
-				t.start();
-			}
-			for (Thread t : threadStack) {
+			
+			for(Future<?> future : futures) {
 				try {
-					t.join();
-				} catch (InterruptedException e1) {
-					e1.printStackTrace();
+					future.get();
+				} catch (InterruptedException | ExecutionException e) {
+					e.printStackTrace();
 				}
 			}
+			
 			logger.info(result.size() + " endpoints verified successfully.");
 		}
 		return result;
