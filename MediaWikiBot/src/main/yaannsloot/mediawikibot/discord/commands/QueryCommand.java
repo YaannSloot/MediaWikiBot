@@ -18,11 +18,12 @@ public class QueryCommand extends Command {
 
 	@Override
 	public boolean CheckForCommandMatch(Message command) {
-		boolean result = false;
+		boolean result = true;
 		List<String> commandWords = Arrays.asList(BotUtils.normalizeSentence(command.getContentRaw()).split(" "));
+		List<String> otherCommandWords = Arrays.asList("help");
 		if (commandWords.size() >= 2) {
-			for (WikiEndpoint endpoint : MediaWikiBot.endpoints) {
-				if (endpoint.getReferenceId().toLowerCase().equals(commandWords.get(1).toLowerCase())) {
+			for (String otherWord : otherCommandWords) {
+				if (otherWord.toLowerCase().equals(commandWords.get(1).toLowerCase())) {
 					result = true;
 					break;
 				}
