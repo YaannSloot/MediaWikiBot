@@ -23,15 +23,19 @@ public class GenericResolver extends Resolver {
 							endpoint.getApiUrl() + "?action=query&srsearch=" + query + "&srprop&list=search&format=xml")
 					.ignoreContentType(true).get();
 			JSONObject parsedResult = XML.toJSONObject(doc.toString());
-			int hits = parsedResult.getJSONObject("api").getJSONObject("query").getJSONObject("searchinfo")
-					.getInt("totalhits");
-			if (hits > 0) {
+			boolean hasResults = false;
+			if(parsedResult.getJSONObject("api").getJSONObject("query").has("search")) {
+				if(parsedResult.getJSONObject("api").getJSONObject("query").get("search") instanceof JSONObject) {
+					hasResults = parsedResult.getJSONObject("api").getJSONObject("query").getJSONObject("search").has("p");
+				}
+			}
+			
+			if (hasResults) {
 				JSONObject resultPage = parsedResult.getJSONObject("api").getJSONObject("query").getJSONObject("search")
 						.getJSONArray("p").getJSONObject(0);
 				String title = resultPage.getString("title");
-				int pageid = resultPage.getInt("pageid");
-				doc = Jsoup.connect(endpoint.getApiUrl() + "?action=query&pageids=" + pageid
-						+ "&prop=extracts|info|pageimages&pithumbsize=800&inprop=url&exintro&explaintext&exchars=1000&format=xml")
+				doc = Jsoup.connect(endpoint.getApiUrl() + "?action=query&titles=" + title
+						+ "&prop=extracts|info|pageimages&pithumbsize=800&inprop=url&exintro&explaintext&exchars=1200&format=xml")
 						.ignoreContentType(true).get();
 				parsedResult = XML.toJSONObject(doc.toString());
 				resultPage = parsedResult.getJSONObject("api").getJSONObject("query").getJSONObject("pages")

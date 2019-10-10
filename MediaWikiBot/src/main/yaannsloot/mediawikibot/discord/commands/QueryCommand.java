@@ -1,8 +1,19 @@
 package main.yaannsloot.mediawikibot.discord.commands;
 
 import java.awt.Color;
+import java.awt.Dimension;
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.sql.Date;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
+
+import org.apache.commons.imaging.ImageReadException;
+import org.apache.commons.imaging.Imaging;
+import org.apache.commons.io.FileUtils;
 
 import main.yaannsloot.mediawikibot.core.MediaWikiBot;
 import main.yaannsloot.mediawikibot.core.entities.QueryResult;
@@ -24,7 +35,7 @@ public class QueryCommand extends Command {
 		if (commandWords.size() >= 2) {
 			for (String otherWord : otherCommandWords) {
 				if (otherWord.toLowerCase().equals(commandWords.get(1).toLowerCase())) {
-					result = true;
+					result = false;
 					break;
 				}
 			}
@@ -49,27 +60,51 @@ public class QueryCommand extends Command {
 			}
 			if (targetEndpoint != null) {
 				Resolver targetResolver = null;
-				for(Resolver resolver : CommandRegistry.ResolverList) {
-					if(resolver.getResolverId().equals(targetEndpoint.getResolverId())) {
+				for (Resolver resolver : CommandRegistry.ResolverList) {
+					if (resolver.getResolverId().equals(targetEndpoint.getResolverId())) {
 						targetResolver = resolver;
 						break;
 					}
 				}
-				if(targetResolver != null) {
+				if (targetResolver != null) {
 					String query = "";
 					for (int i = 2; i < commandWords.size(); i++) {
 						query += commandWords.get(i) + " ";
 					}
 					query = BotUtils.normalizeSentence(query);
 					QueryResult result = targetResolver.queryEndpoint(targetEndpoint, query);
-					if(result != null) {
+					if (result != null) {
 						EmbedBuilder message = new EmbedBuilder();
-						message.setTitle(result.getTitle());
-						message.setDescription("[Page Link](" + result.getPageUrl() + ")");
-						message.addField("Summary:", result.getSummary(), false);
+						message.setTitle(result.getTitle(), result.getPageUrl());
+						message.setDescription(result.getSummary());
+						try {
+							message.setFooter("From " + new URL(targetEndpoint.getApiUrl()).getHost() + " | Requested "
+									+ new SimpleDateFormat("MM/dd/yyyy")
+											.format(Date.from(event.getMessage().getTimeCreated().toInstant())));
+						} catch (MalformedURLException e) {
+							e.printStackTrace();
+						}
 						message.setColor(targetEndpoint.getDisplayColor());
-						if(!result.getThumbnailUrl().equals(""))
-							message.setImage(result.getThumbnailUrl());
+						if (!result.getThumbnailUrl().equals("")) {
+							try {
+								try {
+									File temp = File.createTempFile("mwb", null);
+									FileUtils.copyURLToFile(new URL(result.getThumbnailUrl()), temp);
+									Dimension dim = Imaging.getImageSize(temp);
+									temp.delete();
+									double ratio = dim.getWidth() / dim.getHeight();
+									if(ratio > 1.75) {
+										message.setImage(result.getThumbnailUrl());
+									} else {
+										message.setThumbnail(result.getThumbnailUrl());
+									}
+								} catch (ImageReadException e) {
+									e.printStackTrace();
+								}
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+						}
 						event.getChannel().sendMessage(message.build()).queue();
 					} else {
 						EmbedBuilder message = new EmbedBuilder();
