@@ -52,7 +52,7 @@ public class LoginEvent {
 								if (words.size() >= 3) {
 									boolean autoenable = true;
 									if (words.size() >= 4) {
-										if (words.get(4).equals("noauto"))
+										if (words.get(3).equals("noauto"))
 											autoenable = false;
 									}
 									try {
