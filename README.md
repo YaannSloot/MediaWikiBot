@@ -7,3 +7,5 @@ Support for custom query resolvers for sites that do not have an initial api end
 Simple method to add additional wikis to the bot's wiki database via a csv file
 
 Completely customizeable for private hosting. Leave out any wiki you don't want
+
+test
