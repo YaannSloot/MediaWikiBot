@@ -9,7 +9,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import main.yaannsloot.mediawikibot.core.entities.QueryResult;
-import main.yaannsloot.mediawikibot.core.entities.WikiEndpoint;
+import main.yaannsloot.mediawikibot.sources.endpoints.WikiEndpoint;
 
 public class GenericResolver extends Resolver {
 

@@ -1,4 +1,4 @@
-package main.yaannsloot.mediawikibot.core.entities;
+package main.yaannsloot.mediawikibot.sources.endpoints;
 
 import java.awt.Color;
 

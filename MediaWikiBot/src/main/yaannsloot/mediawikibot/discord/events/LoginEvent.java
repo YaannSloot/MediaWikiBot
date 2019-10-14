@@ -7,7 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import main.yaannsloot.mediawikibot.core.MediaWikiBot;
-import main.yaannsloot.mediawikibot.exceptions.WikiProjectNotFoundException;
+import main.yaannsloot.mediawikibot.exceptions.WikiSourceNotFoundException;
+import main.yaannsloot.mediawikibot.sources.endpoints.retrievers.EndpointRetriever;
 import main.yaannsloot.mediawikibot.tools.BotUtils;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
@@ -44,11 +45,13 @@ public class LoginEvent {
 							case "shutdown":
 								System.out.println("Shutdown requested. Shutting down shards...");
 								break;
-							case "listprojects":
-								List<String> projects = MediaWikiBot.statLoader.getMediaWikis();
-								projects.forEach(project -> System.out.println(project));
+							case "listsources":
+								for (EndpointRetriever retriever : MediaWikiBot.retrieverList) {
+									System.out.println(retriever.getRetrieverName() + ":");
+									retriever.getSourceNames().forEach(source -> System.out.println("   " + source));
+								}
 								break;
-							case "addproject":
+							case "addendpoints":
 								if (words.size() >= 3) {
 									boolean autoenable = true;
 									if (words.size() >= 4) {
@@ -56,18 +59,28 @@ public class LoginEvent {
 											autoenable = false;
 									}
 									try {
-										MediaWikiBot.statLoader.exportToDatabase(
-												MediaWikiBot.statLoader.getProjectEndpoints(words.get(1), words.get(2)),
-												autoenable);
-									} catch (WikiProjectNotFoundException e) {
-										logger.error("Project not found");
+										if (words.get(1).contains(":")) {
+											String[] sourceArgs = words.get(1).split(":");
+											if (sourceArgs.length == 2) {
+												for (EndpointRetriever retriever : MediaWikiBot.retrieverList) {
+													if (retriever.getRetrieverName().equals(sourceArgs[0])) {
+														MediaWikiBot.databaseLoader.exportToDatabase(retriever
+																.extractEndpointUrls(sourceArgs[1], words.get(2)),
+																autoenable);
+														break;
+													}
+												}
+											}
+										}
+									} catch (WikiSourceNotFoundException e) {
+										logger.error("Source not found");
 									}
 								} else {
 									System.out.println("ERROR: Too few arguments");
 								}
 								break;
 							case "reload":
-								MediaWikiBot.endpoints = MediaWikiBot.statLoader.loadEndpoints();
+								MediaWikiBot.endpoints = MediaWikiBot.databaseLoader.loadEndpoints();
 								break;
 							case "status":
 								System.out.println("\nBot Stats\n---------------\nShards: "

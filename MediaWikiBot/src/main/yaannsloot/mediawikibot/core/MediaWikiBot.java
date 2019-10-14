@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -24,9 +26,11 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import main.yaannsloot.mediawikibot.core.entities.WikiEndpoint;
 import main.yaannsloot.mediawikibot.discord.events.Events;
-import main.yaannsloot.mediawikibot.tools.StatFetcher;
+import main.yaannsloot.mediawikibot.sources.endpoints.DatabaseManager;
+import main.yaannsloot.mediawikibot.sources.endpoints.WikiEndpoint;
+import main.yaannsloot.mediawikibot.sources.endpoints.retrievers.EndpointRetriever;
+import main.yaannsloot.mediawikibot.sources.endpoints.retrievers.WikistatsRetriever;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.api.sharding.ShardManager;
 
@@ -37,9 +41,11 @@ public class MediaWikiBot {
 
 	// Static variables
 	public static List<WikiEndpoint> endpoints;
-	public static StatFetcher statLoader;
+	public static DatabaseManager databaseLoader;
 	public static ShardManager shardmgr;
 	public static String botPrefix = "";
+	public static List<EndpointRetriever> retrieverList = new ArrayList<EndpointRetriever>(
+			Arrays.asList(new WikistatsRetriever()));
 
 	// Console
 	public static Terminal terminal;
@@ -184,9 +190,9 @@ public class MediaWikiBot {
 				System.exit(0);
 			}
 
-			statLoader = new StatFetcher();
-			statLoader.setDatabaseFile(new File("database/endpoints.csv"));
-			endpoints = statLoader.loadEndpoints();
+			databaseLoader = new DatabaseManager();
+			databaseLoader.setDatabaseFile(new File("database/endpoints.csv"));
+			endpoints = databaseLoader.loadEndpoints();
 
 			logger.info("Loading bot settings file...");
 

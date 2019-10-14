@@ -17,9 +17,9 @@ import org.apache.commons.io.FileUtils;
 
 import main.yaannsloot.mediawikibot.core.MediaWikiBot;
 import main.yaannsloot.mediawikibot.core.entities.QueryResult;
-import main.yaannsloot.mediawikibot.core.entities.WikiEndpoint;
 import main.yaannsloot.mediawikibot.exceptions.NoMatchException;
 import main.yaannsloot.mediawikibot.resolvers.Resolver;
+import main.yaannsloot.mediawikibot.sources.endpoints.WikiEndpoint;
 import main.yaannsloot.mediawikibot.tools.BotUtils;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;

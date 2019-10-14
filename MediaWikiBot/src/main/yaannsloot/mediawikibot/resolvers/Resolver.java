@@ -1,7 +1,7 @@
 package main.yaannsloot.mediawikibot.resolvers;
 
 import main.yaannsloot.mediawikibot.core.entities.QueryResult;
-import main.yaannsloot.mediawikibot.core.entities.WikiEndpoint;
+import main.yaannsloot.mediawikibot.sources.endpoints.WikiEndpoint;
 
 public abstract class Resolver {
 	
