@@ -1,7 +1,9 @@
 package main.yaannsloot.mediawikibot.discord.events;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,15 +45,19 @@ public class LoginEvent {
 							List<String> words = Arrays.asList(BotUtils.normalizeSentence(command).split(" "));
 							switch (words.get(0)) {
 							case "shutdown":
-								System.out.println("Shutdown requested. Shutting down shards...");
+								System.out.print("Shutdown requested. Shutting down shards...");
 								break;
 							case "listsources":
+								Map<String, List<String>> sourceList = new HashMap<>();
 								for (EndpointRetriever retriever : MediaWikiBot.retrieverList) {
-									System.out.println(retriever.getRetrieverName() + ":");
-									retriever.getSourceNames().forEach(source -> System.out.println("   " + source));
+									sourceList.put(retriever.getRetrieverName(), retriever.getSourceNames());
+								}
+								for(String retriever : sourceList.keySet()) {
+									System.out.print(retriever + ":");
+									sourceList.get(retriever).forEach(source -> System.out.print("   " + source));
 								}
 								break;
-							case "addendpoints":
+							case "addsource":
 								if (words.size() >= 3) {
 									boolean autoenable = true;
 									if (words.size() >= 4) {
@@ -76,14 +82,14 @@ public class LoginEvent {
 										logger.error("Source not found");
 									}
 								} else {
-									System.out.println("ERROR: Too few arguments");
+									System.out.print("ERROR: Too few arguments");
 								}
 								break;
 							case "reload":
 								MediaWikiBot.endpoints = MediaWikiBot.databaseLoader.loadEndpoints();
 								break;
 							case "status":
-								System.out.println("\nBot Stats\n---------------\nShards: "
+								System.out.print("\nBot Stats\n---------------\nShards: "
 										+ event.getJDA().getShardManager().getShardsTotal() + "\n" + "Guilds: "
 										+ event.getJDA().getShardManager().getGuilds().size() + "\n"
 										+ "\nResource usage\n---------------\n" + "Threads: " + Thread.activeCount()
@@ -93,15 +99,15 @@ public class LoginEvent {
 										+ "/" + Runtime.getRuntime().maxMemory() / 1000000 + " MB\n");
 								break;
 							default:
-								System.out.println("ERROR: Command not recognized");
+								System.out.print("ERROR: Command not recognized");
 								break;
 							}
 						} catch (Exception e) {
-							System.out.println("ERROR: Command parse error");
+							System.out.print("ERROR: Command parse error");
 						}
 					}
 					MediaWikiBot.shardmgr.shutdown();
-					System.out.println("Bot is shutting down...");
+					System.out.print("Bot is shutting down...");
 					System.exit(0);
 				}
 			}

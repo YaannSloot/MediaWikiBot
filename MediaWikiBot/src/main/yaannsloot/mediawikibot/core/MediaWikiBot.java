@@ -107,11 +107,11 @@ public class MediaWikiBot {
 			File settingsFile = new File("settings/settings.json");
 			File settingsDir = new File("settings");
 			File database = new File("database");
-			System.out.println("Running initial core file check...");
-			System.out.println("Loading log4j.properties file...");
+			System.out.print("Running initial core file check...");
+			System.out.print("Loading log4j.properties file...");
 			if (!logProperties.exists()) {
 				doShutdown = true;
-				System.out.println("Error: log4j.properties file does not exist. Attempting to create a new one...");
+				System.out.print("Error: log4j.properties file does not exist. Attempting to create a new one...");
 				try {
 					FileUtils.forceMkdirParent(logProperties);
 					logProperties.createNewFile();
@@ -123,10 +123,10 @@ public class MediaWikiBot {
 					fileOut.write(
 							"log4j.appender.STDOUT.layout.ConversionPattern=%d{HH:mm:ss.SSS} [%p][%t][%c:%M] - %m%n\r\n");
 					fileOut.close();
-					System.out.println("Wrote default settings to log4j.properties file successfully");
+					System.out.print("Wrote default settings to log4j.properties file successfully");
 				} catch (IOException e) {
 					e.printStackTrace();
-					System.out.println(
+					System.out.print(
 							"Error: Failed to create a new log4j.properties file. Please check the program's file permissions");
 					System.exit(1);
 				}
@@ -139,7 +139,7 @@ public class MediaWikiBot {
 				logger.info("Successfully loaded log4j.properties file");
 			} catch (IOException e) {
 				e.printStackTrace();
-				System.out.println("Error: Could not set " + logProperties.getAbsolutePath() + " as properties file");
+				System.out.print("Error: Could not set " + logProperties.getAbsolutePath() + " as properties file");
 				System.exit(1);
 			}
 
@@ -254,9 +254,9 @@ public class MediaWikiBot {
 	// Private methods
 	private static JSONObject promptSettings() {
 		JSONObject result = new JSONObject();
-		System.out.println("Please enter your bot's token:");
+		System.out.print("Please enter your bot's token:");
 		String token = lineReader.readLine(">");
-		System.out.println("Please enter your desired command prefix:");
+		System.out.print("Please enter your desired command prefix:");
 		String prefix = lineReader.readLine(">");
 		prefix = prefix.trim();
 		prefix = prefix.replace(" ", "_");
