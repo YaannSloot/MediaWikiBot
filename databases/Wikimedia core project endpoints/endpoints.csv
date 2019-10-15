@@ -1,0 +1,9 @@
+referenceid,endpoint,resolverid,displaycolor
+wikipedia,https://en.wikipedia.org/w/api.php,generic,!random
+wiktionary,https://en.wiktionary.org/w/api.php,generic,!random
+wikibooks,https://en.wikibooks.org/w/api.php,generic,!random
+wikiquote,https://en.wikiquote.org/w/api.php,generic,!random
+wikisource,https://en.wikisource.org/w/api.php,generic,!random
+wikinews,https://en.wikinews.org/w/api.php,generic,!random
+wikiversity,https://en.wikiversity.org/w/api.php,generic,!random
+wikivoyage,https://en.wikivoyage.org/w/api.php,generic,!random
