@@ -30,6 +30,7 @@ import main.yaannsloot.mediawikibot.discord.events.Events;
 import main.yaannsloot.mediawikibot.sources.endpoints.DatabaseManager;
 import main.yaannsloot.mediawikibot.sources.endpoints.WikiEndpoint;
 import main.yaannsloot.mediawikibot.sources.endpoints.retrievers.EndpointRetriever;
+import main.yaannsloot.mediawikibot.sources.endpoints.retrievers.GamepediaRetriever;
 import main.yaannsloot.mediawikibot.sources.endpoints.retrievers.WikistatsRetriever;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.api.sharding.ShardManager;
@@ -45,7 +46,7 @@ public class MediaWikiBot {
 	public static ShardManager shardmgr;
 	public static String botPrefix = "";
 	public static List<EndpointRetriever> retrieverList = new ArrayList<EndpointRetriever>(
-			Arrays.asList(new WikistatsRetriever()));
+			Arrays.asList(new WikistatsRetriever(), new GamepediaRetriever()));
 
 	// Console
 	public static Terminal terminal;

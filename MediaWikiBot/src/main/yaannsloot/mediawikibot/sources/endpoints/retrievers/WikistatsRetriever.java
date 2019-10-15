@@ -2,7 +2,6 @@ package main.yaannsloot.mediawikibot.sources.endpoints.retrievers;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -11,8 +10,6 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
@@ -29,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import main.yaannsloot.mediawikibot.exceptions.WikiSourceNotFoundException;
 
-public class WikistatsRetriever implements EndpointRetriever {
+public class WikistatsRetriever extends EndpointRetriever {
 
 	private static final Logger logger = LoggerFactory.getLogger(WikistatsRetriever.class);
 
@@ -145,90 +142,18 @@ public class WikistatsRetriever implements EndpointRetriever {
 
 			logger.info(wikiLinks.size() + " wiki links found. Verifying endpoints...");
 
-			ExecutorService executor = Executors.newFixedThreadPool(10);
+			Collection<Future<String>> futures = new LinkedList<Future<String>>();
 
-			class verifyThread implements Runnable {
-				private int urlNumber;
-
-				public verifyThread(int urlNumber) {
-					this.urlNumber = urlNumber;
-				}
-
-				public void run() {
-					HttpURLConnection connection;
-					try {
-						connection = (HttpURLConnection) new URL(wikiLinks.get(urlNumber)).openConnection();
-						connection.setRequestMethod("GET");
-						connection.setConnectTimeout(60000);
-						connection.connect();
-						if (connection.getResponseCode() != 200) {
-							wikiLinks.set(urlNumber, wikiLinks.get(urlNumber).replace("http://", "https://"));
-							connection = (HttpURLConnection) new URL(wikiLinks.get(urlNumber)).openConnection();
-							connection.setRequestMethod("GET");
-							connection.setConnectTimeout(60000);
-							connection.connect();
-						}
-						if (connection.getResponseCode() != 200) {
-							logger.info("(" + wikiLinks.get(urlNumber) + "): Returned " + connection.getResponseCode()
-									+ ". Skipping...");
-						} else {
-							logger.info("(" + wikiLinks.get(urlNumber) + ")(Attempt 1): Pinging "
-									+ wikiLinks.get(urlNumber) + "/api.php...");
-							connection = (HttpURLConnection) new URL(wikiLinks.get(urlNumber) + "/api.php")
-									.openConnection();
-							connection.setRequestMethod("GET");
-							connection.setConnectTimeout(60000);
-							connection.connect();
-							if (connection.getResponseCode() == 200) {
-								result.add(wikiLinks.get(urlNumber) + "/api.php");
-								logger.info("(" + wikiLinks.get(urlNumber) + "): Endpoint " + wikiLinks.get(urlNumber)
-										+ "/api.php verified.");
-							} else {
-								logger.info("(" + wikiLinks.get(urlNumber) + ")(Attempt 2): Pinging "
-										+ wikiLinks.get(urlNumber) + "/w/api.php...");
-								connection = (HttpURLConnection) new URL(wikiLinks.get(urlNumber) + "/w/api.php")
-										.openConnection();
-								connection.setRequestMethod("GET");
-								connection.setConnectTimeout(60000);
-								connection.connect();
-								if (connection.getResponseCode() == 200) {
-									result.add(wikiLinks.get(urlNumber) + "/w/api.php");
-									logger.info("(" + wikiLinks.get(urlNumber) + "): Endpoint "
-											+ wikiLinks.get(urlNumber) + "/w/api.php verified.");
-								} else {
-									logger.info("(" + wikiLinks.get(urlNumber) + ")(Attempt 3): Pinging "
-											+ wikiLinks.get(urlNumber) + "/wiki/api.php...");
-									connection = (HttpURLConnection) new URL(wikiLinks.get(urlNumber) + "/wiki/api.php")
-											.openConnection();
-									connection.setRequestMethod("GET");
-									connection.setConnectTimeout(60000);
-									connection.connect();
-									if (connection.getResponseCode() == 200) {
-										result.add(wikiLinks.get(urlNumber) + "/wiki/api.php");
-										logger.info("(" + wikiLinks.get(urlNumber) + "): Endpoint "
-												+ wikiLinks.get(urlNumber) + "/wiki/api.php verified.");
-									} else {
-										logger.info("(" + wikiLinks.get(urlNumber) + "): Endpoint could not be found");
-									}
-								}
-							}
-						}
-					} catch (Exception e) {
-						logger.warn(
-								"(" + wikiLinks.get(urlNumber) + "): Could not establish a proper connection to host");
-					}
-				}
+			for (String wikiLink : wikiLinks) {
+				futures.add(verifyEndpointExistance(wikiLink));
 			}
 
-			Collection<Future<?>> futures = new LinkedList<Future<?>>();
-
-			for (int i = 0; i < wikiLinks.size(); i++) {
-				futures.add(executor.submit(new verifyThread(i)));
-			}
-
-			for (Future<?> future : futures) {
+			for (Future<String> future : futures) {
 				try {
-					future.get();
+					String endpointUrl = future.get();
+					if(!endpointUrl.equals("")) {
+						result.add(endpointUrl);
+					}
 				} catch (InterruptedException | ExecutionException e) {
 					e.printStackTrace();
 				}
