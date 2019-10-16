@@ -31,13 +31,16 @@ public class FandomRetriever extends EndpointRetriever {
 
 	@Override
 	public List<String> getSourceNames() {
-		return Arrays.asList("<single word search>");
+		return Arrays.asList("<single word search or all>");
 	}
 
 	@Override
 	public List<String> extractEndpointUrls(String source, String language)
 			throws WikiSourceNotFoundException, IOException {
 		List<String> result = new ArrayList<String>();
+		if(source.equals("all")) {
+			source = "";
+		}
 		Locale lang = getMatchingLocale(language);
 		if (lang == null) {
 			logger.error("Specified language not recognized");
@@ -74,7 +77,7 @@ public class FandomRetriever extends EndpointRetriever {
 						futures.add(getWikiUrls("https://community-search.fandom.com/wiki/Special:Search?search="
 								+ source + "&page=" + i + "&limit=200&resultsLang=" + lang.getLanguage()));
 					}
-					for(Future<List<String>> future : futures) {
+					for (Future<List<String>> future : futures) {
 						try {
 							wikiUrls.addAll(future.get());
 						} catch (InterruptedException | ExecutionException e1) {
@@ -83,15 +86,20 @@ public class FandomRetriever extends EndpointRetriever {
 					}
 				}
 				wikiUrls = wikiUrls.stream().filter(url -> url.contains("fandom")).collect(Collectors.toList());
+				for (int i = 0; i < wikiUrls.size(); i++) {
+					while (wikiUrls.get(i).lastIndexOf("/") == wikiUrls.get(i).length() - 1
+							&& wikiUrls.get(i).length() > 0)
+						wikiUrls.set(i, wikiUrls.get(i).substring(0, wikiUrls.get(i).length() - 1));
+				}
 				logger.info("Verifying endpoint existance for " + wikiUrls.size() + " wikis...");
 				Collection<Future<String>> futures = new LinkedList<Future<String>>();
-				for(String link : wikiUrls) {
+				for (String link : wikiUrls) {
 					futures.add(verifyEndpointExistance(link));
 				}
 				for (Future<String> future : futures) {
 					try {
 						String endpointUrl = future.get();
-						if(!endpointUrl.equals("")) {
+						if (!endpointUrl.equals("")) {
 							result.add(endpointUrl);
 						}
 					} catch (InterruptedException | ExecutionException e) {
