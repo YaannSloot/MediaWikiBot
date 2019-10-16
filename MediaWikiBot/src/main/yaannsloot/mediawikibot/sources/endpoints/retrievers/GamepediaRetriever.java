@@ -43,6 +43,7 @@ public class GamepediaRetriever extends EndpointRetriever {
 				.filter(e -> e.tagName().equals("a")).collect(Collectors.toList())).last().text());
 		List<String> wikiLinks = new ArrayList<String>();
 		Collection<Future<List<String>>> futures = new LinkedList<Future<List<String>>>();
+		logger.info("Gathering wiki urls...");
 		for (int i = 1; i <= wikiPageCount; i++) {
 			futures.add(getWikiLinksFromPage("https://www.gamepedia.com/wikis?page=" + i));
 		}
@@ -59,11 +60,14 @@ public class GamepediaRetriever extends EndpointRetriever {
 		for(String url : wikiLinks) {
 			verifyFutures.add(verifyEndpointExistance(url));
 		}
-		for(Future<String> future : verifyFutures) {
+		for (Future<String> future : verifyFutures) {
 			try {
-				result.add(future.get());
-			} catch (InterruptedException | ExecutionException e1) {
-				e1.printStackTrace();
+				String endpointUrl = future.get();
+				if(!endpointUrl.equals("")) {
+					result.add(endpointUrl);
+				}
+			} catch (InterruptedException | ExecutionException e) {
+				e.printStackTrace();
 			}
 		}
 		logger.info(result.size() + " endpoints verified successfully.");
@@ -73,7 +77,6 @@ public class GamepediaRetriever extends EndpointRetriever {
 	private Future<List<String>> getWikiLinksFromPage(String pageUrl) {
 		return executor.submit(() -> {
 			List<String> wikiLinks = new ArrayList<String>();
-			logger.info("Retrieving wiki links from " + pageUrl + "...");
 			try {
 				Document doc = Jsoup.connect(pageUrl).get();
 				Elements wikis = new Elements();
@@ -81,7 +84,6 @@ public class GamepediaRetriever extends EndpointRetriever {
 					wikis.addAll(e.getElementsByTag("a"));
 				}
 				wikis.forEach(e -> wikiLinks.add(e.attr("href")));
-				logger.info("Retrieved " + wikiLinks.size() + " wiki links successfully");
 			} catch (Exception e) {
 				logger.warn("Failed to retrieve wiki links from " + pageUrl);
 			}
