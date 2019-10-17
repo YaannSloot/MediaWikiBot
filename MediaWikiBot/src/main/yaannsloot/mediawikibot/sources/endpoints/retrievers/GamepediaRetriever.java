@@ -1,6 +1,8 @@
 package main.yaannsloot.mediawikibot.sources.endpoints.retrievers;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -17,7 +19,11 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import main.yaannsloot.mediawikibot.core.MediaWikiBot;
 import main.yaannsloot.mediawikibot.exceptions.WikiSourceNotFoundException;
+import main.yaannsloot.mediawikibot.sources.endpoints.WikiEndpoint;
+import me.tongfei.progressbar.ProgressBar;
+import me.tongfei.progressbar.ProgressBarStyle;
 
 public class GamepediaRetriever extends EndpointRetriever {
 
@@ -55,19 +61,33 @@ public class GamepediaRetriever extends EndpointRetriever {
 			}
 		}
 		logger.info("Retrieved " + wikiLinks.size() + " wiki links successfully");
+		logger.info("Comparing links with preexisting urls in database...");
+		List<WikiEndpoint> endpoints = MediaWikiBot.databaseLoader.loadEndpoints();
+		for (WikiEndpoint e : endpoints) {
+			wikiLinks = wikiLinks.stream().filter(url -> {
+				try {
+					return !e.getApiUrl().contains(new URL(url).getHost());
+				} catch (MalformedURLException e1) {
+					return true;
+				}
+			}).collect(Collectors.toList());
+		}
+		logger.info("New size of list to be verified is " + wikiLinks.size());
 		logger.info("Verifying endpoints...");
 		Collection<Future<String>> verifyFutures = new LinkedList<Future<String>>();
-		for(String url : wikiLinks) {
+		for (String url : wikiLinks) {
 			verifyFutures.add(verifyEndpointExistance(url));
 		}
-		for (Future<String> future : verifyFutures) {
-			try {
-				String endpointUrl = future.get();
-				if(!endpointUrl.equals("")) {
-					result.add(endpointUrl);
+		try (ProgressBar pb = new ProgressBar("Verifying...", wikiLinks.size(), ProgressBarStyle.ASCII)) {
+			for (Future<String> future : verifyFutures) {
+				try {
+					String endpointUrl = future.get();
+					if (!endpointUrl.equals("")) {
+						result.add(endpointUrl);
+					}
+				} catch (InterruptedException | ExecutionException e) {
+					e.printStackTrace();
 				}
-			} catch (InterruptedException | ExecutionException e) {
-				e.printStackTrace();
 			}
 		}
 		logger.info(result.size() + " endpoints verified successfully.");

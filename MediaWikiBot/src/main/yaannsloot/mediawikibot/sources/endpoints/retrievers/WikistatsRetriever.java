@@ -24,7 +24,11 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import main.yaannsloot.mediawikibot.core.MediaWikiBot;
 import main.yaannsloot.mediawikibot.exceptions.WikiSourceNotFoundException;
+import main.yaannsloot.mediawikibot.sources.endpoints.WikiEndpoint;
+import me.tongfei.progressbar.ProgressBar;
+import me.tongfei.progressbar.ProgressBarStyle;
 
 public class WikistatsRetriever extends EndpointRetriever {
 
@@ -140,25 +144,38 @@ public class WikistatsRetriever extends EndpointRetriever {
 				}
 			}
 
-			logger.info(wikiLinks.size() + " wiki links found. Verifying endpoints...");
+			logger.info(wikiLinks.size() + " wiki links found.");
 
+			logger.info("Comparing links with preexisting urls in database...");
+			List<WikiEndpoint> endpoints = MediaWikiBot.databaseLoader.loadEndpoints();
+			for (WikiEndpoint e : endpoints) {
+				wikiLinks = wikiLinks.stream().filter(url -> {
+					try {
+						return !e.getApiUrl().contains(new URL(url).getHost());
+					} catch (MalformedURLException e1) {
+						return true;
+					}
+				}).collect(Collectors.toList());
+			}
+			logger.info("New size of list to be verified is " + wikiLinks.size());
+			logger.info("Verifying endpoints...");
 			Collection<Future<String>> futures = new LinkedList<Future<String>>();
 
 			for (String wikiLink : wikiLinks) {
 				futures.add(verifyEndpointExistance(wikiLink));
 			}
-
-			for (Future<String> future : futures) {
-				try {
-					String endpointUrl = future.get();
-					if(!endpointUrl.equals("")) {
-						result.add(endpointUrl);
+			try (ProgressBar pb = new ProgressBar("Verifying...", wikiLinks.size(), ProgressBarStyle.ASCII)) {
+				for (Future<String> future : futures) {
+					try {
+						String endpointUrl = future.get();
+						if (!endpointUrl.equals("")) {
+							result.add(endpointUrl);
+						}
+					} catch (InterruptedException | ExecutionException e) {
+						e.printStackTrace();
 					}
-				} catch (InterruptedException | ExecutionException e) {
-					e.printStackTrace();
 				}
 			}
-
 			logger.info(result.size() + " endpoints verified successfully.");
 		}
 		return result;
