@@ -168,6 +168,7 @@ public class WikistatsRetriever extends EndpointRetriever {
 				for (Future<String> future : futures) {
 					try {
 						String endpointUrl = future.get();
+						pb.step();
 						if (!endpointUrl.equals("")) {
 							result.add(endpointUrl);
 						}

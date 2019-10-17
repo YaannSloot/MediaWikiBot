@@ -82,6 +82,7 @@ public class GamepediaRetriever extends EndpointRetriever {
 			for (Future<String> future : verifyFutures) {
 				try {
 					String endpointUrl = future.get();
+					pb.step();
 					if (!endpointUrl.equals("")) {
 						result.add(endpointUrl);
 					}

@@ -1,6 +1,7 @@
 package main.yaannsloot.mediawikibot.sources.endpoints.retrievers;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -135,6 +136,39 @@ public class FandomRetriever extends EndpointRetriever {
 		return result;
 	}
 
+	@Override
+	public Future<String> verifyEndpointExistance(String wikiURL) {
+		return executor.submit(() -> {
+			String endpointUrl = "";
+			String wikiLink = wikiURL;
+			HttpURLConnection connection;
+			try {
+				connection = (HttpURLConnection) new URL(wikiLink).openConnection();
+				connection.setRequestMethod("GET");
+				connection.setConnectTimeout(60000);
+				connection.connect();
+				if (connection.getResponseCode() != 200) {
+					wikiLink =  wikiLink.replace("http://", "https://");
+					connection = (HttpURLConnection) new URL(wikiLink).openConnection();
+					connection.setRequestMethod("GET");
+					connection.setConnectTimeout(60000);
+					connection.connect();
+				}
+				if (connection.getResponseCode() == 200) {
+					connection = (HttpURLConnection) new URL(wikiLink + "/api/v1")
+							.openConnection();
+					connection.setRequestMethod("GET");
+					connection.setConnectTimeout(60000);
+					connection.connect();
+					if (connection.getResponseCode() == 200) {
+						endpointUrl = wikiLink + "/api/v1";
+					}
+				}
+			} catch (Exception e) {}
+			return endpointUrl;
+		});
+	}
+	
 	private Locale getMatchingLocale(String language) {
 		Locale result = null;
 		Locale[] locales = Locale.getAvailableLocales();
