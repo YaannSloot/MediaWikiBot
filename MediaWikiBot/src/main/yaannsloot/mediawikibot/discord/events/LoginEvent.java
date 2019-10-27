@@ -52,7 +52,7 @@ public class LoginEvent {
 								for (EndpointRetriever retriever : MediaWikiBot.retrieverList) {
 									sourceList.put(retriever.getRetrieverName(), retriever.getSourceNames());
 								}
-								for(String retriever : sourceList.keySet()) {
+								for (String retriever : sourceList.keySet()) {
 									System.out.print(retriever + ":");
 									sourceList.get(retriever).forEach(source -> System.out.print("   " + source));
 								}
@@ -70,9 +70,9 @@ public class LoginEvent {
 											if (sourceArgs.length == 2) {
 												for (EndpointRetriever retriever : MediaWikiBot.retrieverList) {
 													if (retriever.getRetrieverName().equals(sourceArgs[0])) {
-														MediaWikiBot.databaseLoader.exportToDatabase(retriever
-																.extractEndpointUrls(sourceArgs[1], words.get(2)),
-																autoenable);
+														MediaWikiBot.databaseLoader.exportToDatabase(
+																retriever.extractEndpoints(sourceArgs[1], words.get(2),
+																		autoenable));
 														break;
 													}
 												}

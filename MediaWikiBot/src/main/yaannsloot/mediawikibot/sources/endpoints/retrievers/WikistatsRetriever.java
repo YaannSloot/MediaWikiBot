@@ -79,9 +79,9 @@ public class WikistatsRetriever extends EndpointRetriever {
 	 * @throws IOException                 If an I/O error occurs
 	 */
 	@Override
-	public List<String> extractEndpointUrls(String source, String language)
+	public List<WikiEndpoint> extractEndpoints(String source, String language, boolean autoEnable)
 			throws WikiSourceNotFoundException, IOException {
-		List<String> result = new ArrayList<String>();
+		List<WikiEndpoint> result = new ArrayList<WikiEndpoint>();
 		List<String> wikiLinks = new ArrayList<String>();
 		logger.info("Attempting to retrieve list of wikis from project \"" + source + "\"...");
 		URL site = new URL("https://wikistats.wmflabs.org/api.php?action=dump&table=" + source + "&format=csv");
@@ -170,7 +170,11 @@ public class WikistatsRetriever extends EndpointRetriever {
 						String endpointUrl = future.get();
 						pb.step();
 						if (!endpointUrl.equals("")) {
-							result.add(endpointUrl);
+							if (autoEnable)
+								result.add(
+										new WikiEndpoint(getPrefixFromURL(endpointUrl), endpointUrl, "generic", null));
+							else
+								result.add(new WikiEndpoint("!disabled", endpointUrl, "generic", null));
 						}
 					} catch (InterruptedException | ExecutionException e) {
 						e.printStackTrace();
@@ -180,6 +184,22 @@ public class WikistatsRetriever extends EndpointRetriever {
 			logger.info(result.size() + " endpoints verified successfully.");
 		}
 		return result;
+	}
+
+	@Override
+	public List<WikiEndpoint> extractEndpoints(String source, String language)
+			throws WikiSourceNotFoundException, IOException {
+		return extractEndpoints(source, language, true);
+	}
+
+	@Override
+	public List<WikiEndpoint> extractEndpoints(String language) throws WikiSourceNotFoundException, IOException {
+		return extractEndpoints("wikipedias", language, true);
+	}
+
+	@Override
+	public List<WikiEndpoint> extractEndpoints() throws WikiSourceNotFoundException, IOException {
+		return extractEndpoints("wikipedias", "english", true);
 	}
 
 }

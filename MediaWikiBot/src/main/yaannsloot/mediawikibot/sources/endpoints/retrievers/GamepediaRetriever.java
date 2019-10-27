@@ -38,11 +38,11 @@ public class GamepediaRetriever extends EndpointRetriever {
 	public List<String> getSourceNames() {
 		return Arrays.asList("gamepedia");
 	}
-
+	
 	@Override
-	public List<String> extractEndpointUrls(String source, String language)
+	public List<WikiEndpoint> extractEndpoints(String source, String language, boolean autoEnable)
 			throws WikiSourceNotFoundException, IOException {
-		List<String> result = new ArrayList<String>();
+		List<WikiEndpoint> result = new ArrayList<WikiEndpoint>();
 		logger.info("Retrieving endpoint urls from https://www.gamepedia.com...");
 		Document doc = Jsoup.connect("https://www.gamepedia.com/wikis").get();
 		int wikiPageCount = Integer.parseInt(new Elements(doc.getElementsByClass("b-pagination-item").stream()
@@ -84,7 +84,10 @@ public class GamepediaRetriever extends EndpointRetriever {
 					String endpointUrl = future.get();
 					pb.step();
 					if (!endpointUrl.equals("")) {
-						result.add(endpointUrl);
+						if(autoEnable)
+							result.add(new WikiEndpoint(getPrefixFromURL(endpointUrl), endpointUrl, "generic", null));
+						else
+							result.add(new WikiEndpoint("!disabled", endpointUrl, "generic", null));
 					}
 				} catch (InterruptedException | ExecutionException e) {
 					e.printStackTrace();
@@ -93,6 +96,22 @@ public class GamepediaRetriever extends EndpointRetriever {
 		}
 		logger.info(result.size() + " endpoints verified successfully.");
 		return result;
+	}
+
+	@Override
+	public List<WikiEndpoint> extractEndpoints(String source, String language)
+			throws WikiSourceNotFoundException, IOException {
+		return extractEndpoints(null, null, true);
+	}
+	
+	@Override
+	public List<WikiEndpoint> extractEndpoints(String language) throws WikiSourceNotFoundException, IOException {
+		return extractEndpoints(null, null, true);
+	}
+
+	@Override
+	public List<WikiEndpoint> extractEndpoints() throws WikiSourceNotFoundException, IOException {
+		return extractEndpoints(null, null, true);
 	}
 
 	private Future<List<String>> getWikiLinksFromPage(String pageUrl) {

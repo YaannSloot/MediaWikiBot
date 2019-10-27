@@ -4,8 +4,6 @@ import java.awt.Color;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -91,11 +89,9 @@ public class DatabaseManager {
 	/**
 	 * Exports a list of api endpoints to the database csv file
 	 * 
-	 * @param endpoints  The list of endpoint urls to add
-	 * @param autoEnable Whether or not to auto-enable new entries (to prevent
-	 *                   repeating reference ids)
+	 * @param endpoints The list of endpoint urls to add
 	 */
-	public void exportToDatabase(List<String> endpoints, boolean autoEnable) {
+	public void exportToDatabase(List<WikiEndpoint> endpoints) {
 		logger.info("Exporting endpoints to database...");
 		try {
 			FileUtils.forceMkdirParent(databaseFile);
@@ -106,20 +102,15 @@ public class DatabaseManager {
 					CSVFormat.RFC4180.withHeader().withDelimiter(',').withRecordSeparator('\n'));
 			List<CSVRecord> previousRecords = databaseData.getRecords();
 			for (CSVRecord record : previousRecords) {
-				if (endpoints.contains(record.get("endpoint"))) {
-					endpoints.remove(record.get("endpoint"));
+				for (int i = 0; i < endpoints.size(); i++) {
+					if (record.get("endpoint").equals(endpoints.get(i).getApiUrl())) {
+						endpoints.remove(i);
+						i--;
+					}
 				}
 			}
 			logger.info(previousRecords.size() + " previous entries found. " + endpoints.size()
 					+ " new endpoints will be added");
-			List<URL> newUrls = new ArrayList<URL>();
-			endpoints.forEach(endpt -> {
-				try {
-					newUrls.add(new URL(endpt));
-				} catch (MalformedURLException e) {
-					e.printStackTrace();
-				}
-			});
 			databaseFile.delete();
 			databaseFile.createNewFile();
 			BufferedWriter writer = Files.newBufferedWriter(Paths.get(databaseFile.toURI()));
@@ -133,21 +124,12 @@ public class DatabaseManager {
 					e.printStackTrace();
 				}
 			});
-			for (URL newUrl : newUrls) {
-				String referenceid = "";
-				String host = newUrl.getHost();
-				int dots = 0;
-				for (int i = 0; i < host.length(); i++) {
-					if (host.charAt(i) == '.') {
-						dots++;
-					}
+			for (WikiEndpoint endpoint : endpoints) {
+				String color = "!random";
+				if(endpoint.getDisplayColor() != null) {
+					color = endpoint.getDisplayColor().toString();
 				}
-				if (dots > 1 && autoEnable) {
-					referenceid = host.substring(0, host.indexOf('.'));
-				} else {
-					referenceid = "!disabled";
-				}
-				csvExporter.printRecord(referenceid, newUrl.toString(), "generic", "!random");
+				csvExporter.printRecord(endpoint.getReferenceId(), endpoint.getApiUrl(), endpoint.getResolverId(), color);
 			}
 			csvExporter.flush();
 			csvExporter.close();

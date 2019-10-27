@@ -1,6 +1,8 @@
 package main.yaannsloot.mediawikibot.tools;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Contains helpful data processing tools for command input and List/Array
@@ -158,4 +160,17 @@ public class BotUtils {
 		return result;
 	}
 
+	public static int lastIndexOfRegex(String input, String regex) {
+		int result = -1;
+		Pattern pattern = Pattern.compile(regex);
+		Matcher matcher = pattern.matcher(input);
+		String lastMatch = null;
+		while(matcher.find()) {
+			lastMatch = matcher.group();
+		}
+		if(lastMatch != null)
+			result = input.lastIndexOf(lastMatch);
+		return result;
+	}
+	
 }

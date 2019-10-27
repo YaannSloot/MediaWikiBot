@@ -42,9 +42,9 @@ public class FandomRetriever extends EndpointRetriever {
 	}
 
 	@Override
-	public List<String> extractEndpointUrls(String source, String language)
+	public List<WikiEndpoint> extractEndpoints(String source, String language, boolean autoEnable)
 			throws WikiSourceNotFoundException, IOException {
-		List<String> result = new ArrayList<String>();
+		List<WikiEndpoint> result = new ArrayList<WikiEndpoint>();
 		if (source.equals("all")) {
 			source = "";
 		}
@@ -121,7 +121,10 @@ public class FandomRetriever extends EndpointRetriever {
 							String endpointUrl = future.get();
 							pb.step();
 							if (!endpointUrl.equals("")) {
-								result.add(endpointUrl);
+								if(autoEnable)
+									result.add(new WikiEndpoint(getPrefixFromURL(endpointUrl), endpointUrl, "wikia", null));
+								else
+									result.add(new WikiEndpoint("!disabled", endpointUrl, "wikia", null));
 							}
 						} catch (InterruptedException | ExecutionException e) {
 							e.printStackTrace();
@@ -134,6 +137,22 @@ public class FandomRetriever extends EndpointRetriever {
 			}
 		}
 		return result;
+	}
+	
+	@Override
+	public List<WikiEndpoint> extractEndpoints(String source, String language)
+			throws WikiSourceNotFoundException, IOException {
+		return extractEndpoints(source, language, true);
+	}
+	
+	@Override
+	public List<WikiEndpoint> extractEndpoints(String language) throws WikiSourceNotFoundException, IOException {
+		return extractEndpoints("all", language, true);
+	}
+
+	@Override
+	public List<WikiEndpoint> extractEndpoints() throws WikiSourceNotFoundException, IOException {
+		return extractEndpoints("all", "english", true);
 	}
 
 	@Override

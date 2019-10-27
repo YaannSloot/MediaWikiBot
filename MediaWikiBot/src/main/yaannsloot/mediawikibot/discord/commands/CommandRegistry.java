@@ -6,6 +6,7 @@ import java.util.List;
 
 import main.yaannsloot.mediawikibot.resolvers.GenericResolver;
 import main.yaannsloot.mediawikibot.resolvers.Resolver;
+import main.yaannsloot.mediawikibot.resolvers.WikiaResolver;
 
 public class CommandRegistry {
 
@@ -15,6 +16,6 @@ public class CommandRegistry {
 	public static List<Command> DefaultInstances = new ArrayList<Command>(
 			Arrays.asList(new HelpCommand(), new QueryCommand()));
 
-	public static List<Resolver> ResolverList = new ArrayList<Resolver>(Arrays.asList(new GenericResolver()));
+	public static List<Resolver> ResolverList = new ArrayList<Resolver>(Arrays.asList(new GenericResolver(), new WikiaResolver()));
 
 }

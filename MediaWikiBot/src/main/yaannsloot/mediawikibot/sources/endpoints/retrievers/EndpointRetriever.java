@@ -2,6 +2,7 @@ package main.yaannsloot.mediawikibot.sources.endpoints.retrievers;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -9,6 +10,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import main.yaannsloot.mediawikibot.exceptions.WikiSourceNotFoundException;
+import main.yaannsloot.mediawikibot.sources.endpoints.WikiEndpoint;
 
 /**
  * Scrapes websites for endpoint URLs
@@ -23,7 +25,34 @@ public abstract class EndpointRetriever {
 	
 	public abstract List<String> getSourceNames();
 	
-	public abstract List<String> extractEndpointUrls(String source, String language) throws WikiSourceNotFoundException, IOException;
+	public abstract List<WikiEndpoint> extractEndpoints(String source, String language, boolean autoEnable) throws WikiSourceNotFoundException, IOException;
+	
+	public abstract List<WikiEndpoint> extractEndpoints(String source, String language) throws WikiSourceNotFoundException, IOException;
+	
+	public abstract List<WikiEndpoint> extractEndpoints(String language) throws WikiSourceNotFoundException, IOException;
+	
+	public abstract List<WikiEndpoint> extractEndpoints() throws WikiSourceNotFoundException, IOException;
+	
+	public String getPrefixFromURL(String sourceURL) {
+		String result = "";
+		try {
+			sourceURL = new URL(sourceURL).getHost();
+			int dots = 0;
+			for (int i = 0; i < sourceURL.length(); i++) {
+				if (sourceURL.charAt(i) == '.') {
+					dots++;
+				}
+			}
+			if (dots > 1) {
+				result = sourceURL.substring(0, sourceURL.indexOf('.'));
+			} else {
+				result = "!disabled";
+			}
+		} catch (MalformedURLException e) {
+			result = "!disabled";
+		}
+		return result;
+	}
 	
 	public Future<String> verifyEndpointExistance(String wikiURL) {
 		return executor.submit(() -> {
