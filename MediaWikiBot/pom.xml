@@ -9,6 +9,7 @@
 		<sourceDirectory>src</sourceDirectory>
 		<plugins>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.8.1</version>
 				<configuration>
@@ -55,6 +56,11 @@
 			<id>dv8tion</id>
 			<name>m2-dv8tion</name>
 			<url>https://m2.dv8tion.net/releases</url>
+		</repository>
+		<repository>
+			<id>in-project</id>
+			<name>Project Libraries</name>
+			<url>file://${project.basedir}/dependencies</url>
 		</repository>
 	</repositories>
 	<dependencies>
@@ -107,6 +113,11 @@
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
 			<version>4.5.13</version>
+		</dependency>
+		<dependency>
+			<groupId>apache-commons</groupId>
+			<artifactId>imaging</artifactId>
+			<version>3.0</version>
 		</dependency>
 	</dependencies>
 </project>
