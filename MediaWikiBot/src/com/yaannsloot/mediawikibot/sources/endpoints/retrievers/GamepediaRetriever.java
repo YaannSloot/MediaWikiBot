@@ -24,7 +24,6 @@ import com.yaannsloot.mediawikibot.exceptions.WikiSourceNotFoundException;
 import com.yaannsloot.mediawikibot.sources.endpoints.WikiEndpoint;
 
 import me.tongfei.progressbar.ProgressBar;
-import me.tongfei.progressbar.ProgressBarStyle;
 
 public class GamepediaRetriever extends EndpointRetriever {
 
@@ -79,7 +78,7 @@ public class GamepediaRetriever extends EndpointRetriever {
 		for (String url : wikiLinks) {
 			verifyFutures.add(verifyEndpointExistance(url));
 		}
-		try (ProgressBar pb = new ProgressBar("Verifying...", wikiLinks.size(), ProgressBarStyle.ASCII)) {
+		try (ProgressBar pb = new ProgressBar("Verifying...", wikiLinks.size())) {
 			for (Future<String> future : verifyFutures) {
 				try {
 					String endpointUrl = future.get();

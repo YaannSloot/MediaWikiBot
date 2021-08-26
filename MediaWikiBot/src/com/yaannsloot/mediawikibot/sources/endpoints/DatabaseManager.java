@@ -45,15 +45,15 @@ public class DatabaseManager {
 		List<WikiEndpoint> endpoints = new ArrayList<WikiEndpoint>();
 		List<String> repeatingRefIds = new ArrayList<String>();
 		List<String> refIds = new ArrayList<String>();
+		CSVFormat format = CSVFormat.Builder.create().setHeader("referenceid", "endpoint", "resolverid", "displaycolor")
+				.setDelimiter(',').setRecordSeparator('\n').build();
 		if (!databaseFile.exists()) {
 			FileUtils.forceMkdirParent(databaseFile);
 			BufferedWriter writer = Files.newBufferedWriter(Paths.get(databaseFile.toURI()));
-			CSVPrinter csvExporter = new CSVPrinter(writer,
-					CSVFormat.RFC4180.withHeader("referenceid", "endpoint", "resolverid", "displaycolor"));
+			CSVPrinter csvExporter = new CSVPrinter(writer, format);
 			csvExporter.close();
 		}
-		CSVParser databaseData = CSVParser.parse(databaseFile, Charset.defaultCharset(),
-				CSVFormat.RFC4180.withHeader().withDelimiter(',').withRecordSeparator('\n'));
+		CSVParser databaseData = CSVParser.parse(databaseFile, Charset.defaultCharset(), format);
 		List<CSVRecord> records = databaseData.getRecords();
 		for (CSVRecord record : records) {
 			if (refIds.contains(record.get("referenceid")) && !repeatingRefIds.contains(record.get("referenceid"))
@@ -98,8 +98,10 @@ public class DatabaseManager {
 			if (!databaseFile.exists()) {
 				databaseFile.createNewFile();
 			}
-			CSVParser databaseData = CSVParser.parse(databaseFile, Charset.defaultCharset(),
-					CSVFormat.RFC4180.withHeader().withDelimiter(',').withRecordSeparator('\n'));
+			CSVFormat format = CSVFormat.Builder.create()
+					.setHeader("referenceid", "endpoint", "resolverid", "displaycolor").setDelimiter(',')
+					.setRecordSeparator('\n').build();
+			CSVParser databaseData = CSVParser.parse(databaseFile, Charset.defaultCharset(), format);
 			List<CSVRecord> previousRecords = databaseData.getRecords();
 			for (CSVRecord record : previousRecords) {
 				for (int i = 0; i < endpoints.size(); i++) {
@@ -114,8 +116,7 @@ public class DatabaseManager {
 			databaseFile.delete();
 			databaseFile.createNewFile();
 			BufferedWriter writer = Files.newBufferedWriter(Paths.get(databaseFile.toURI()));
-			CSVPrinter csvExporter = new CSVPrinter(writer,
-					CSVFormat.RFC4180.withHeader("referenceid", "endpoint", "resolverid", "displaycolor"));
+			CSVPrinter csvExporter = new CSVPrinter(writer, format);
 			previousRecords.forEach(record -> {
 				try {
 					csvExporter.printRecord(record.get("referenceid"), record.get("endpoint"), record.get("resolverid"),
@@ -126,10 +127,11 @@ public class DatabaseManager {
 			});
 			for (WikiEndpoint endpoint : endpoints) {
 				String color = "!random";
-				if(endpoint.getDisplayColor() != null) {
+				if (endpoint.getDisplayColor() != null) {
 					color = endpoint.getDisplayColor().toString();
 				}
-				csvExporter.printRecord(endpoint.getReferenceId(), endpoint.getApiUrl(), endpoint.getResolverId(), color);
+				csvExporter.printRecord(endpoint.getReferenceId(), endpoint.getApiUrl(), endpoint.getResolverId(),
+						color);
 			}
 			csvExporter.flush();
 			csvExporter.close();

@@ -26,7 +26,6 @@ import com.yaannsloot.mediawikibot.exceptions.WikiSourceNotFoundException;
 import com.yaannsloot.mediawikibot.sources.endpoints.WikiEndpoint;
 
 import me.tongfei.progressbar.ProgressBar;
-import me.tongfei.progressbar.ProgressBarStyle;
 
 public class FandomRetriever extends EndpointRetriever {
 
@@ -116,7 +115,7 @@ public class FandomRetriever extends EndpointRetriever {
 				for (String link : wikiUrls) {
 					futures.add(verifyEndpointExistance(link));
 				}
-				try (ProgressBar pb = new ProgressBar("Verifying...", wikiUrls.size(), ProgressBarStyle.ASCII)) {
+				try (ProgressBar pb = new ProgressBar("Verifying...", wikiUrls.size())) {
 					for (Future<String> future : futures) {
 						try {
 							String endpointUrl = future.get();

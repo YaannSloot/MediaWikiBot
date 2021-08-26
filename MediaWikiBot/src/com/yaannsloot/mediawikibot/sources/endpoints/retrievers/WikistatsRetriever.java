@@ -29,7 +29,6 @@ import com.yaannsloot.mediawikibot.exceptions.WikiSourceNotFoundException;
 import com.yaannsloot.mediawikibot.sources.endpoints.WikiEndpoint;
 
 import me.tongfei.progressbar.ProgressBar;
-import me.tongfei.progressbar.ProgressBarStyle;
 
 public class WikistatsRetriever extends EndpointRetriever {
 
@@ -84,6 +83,8 @@ public class WikistatsRetriever extends EndpointRetriever {
 			throws WikiSourceNotFoundException, IOException {
 		List<WikiEndpoint> result = new ArrayList<WikiEndpoint>();
 		List<String> wikiLinks = new ArrayList<String>();
+		CSVFormat format = CSVFormat.Builder.create().setHeader("referenceid", "endpoint", "resolverid", "displaycolor")
+				.setDelimiter(',').setRecordSeparator('\n').build();
 		logger.info("Attempting to retrieve list of wikis from project \"" + source + "\"...");
 		URL site = new URL("https://wikistats.wmflabs.org/api.php?action=dump&table=" + source + "&format=csv");
 		File temp = File.createTempFile("records", "csv");
@@ -93,8 +94,7 @@ public class WikistatsRetriever extends EndpointRetriever {
 		if (doc.contains("table name not set or unknown")) {
 			throw new WikiSourceNotFoundException(source);
 		} else {
-			CSVParser projectData = CSVParser.parse(doc,
-					CSVFormat.RFC4180.withHeader().withDelimiter(',').withRecordSeparator('\n'));
+			CSVParser projectData = CSVParser.parse(doc, format);
 			List<CSVRecord> records = projectData.getRecords();
 			logger.info(records.size() + " wikis found");
 			if (projectData.getHeaderMap().containsKey("lang")) {
@@ -165,7 +165,7 @@ public class WikistatsRetriever extends EndpointRetriever {
 			for (String wikiLink : wikiLinks) {
 				futures.add(verifyEndpointExistance(wikiLink));
 			}
-			try (ProgressBar pb = new ProgressBar("Verifying...", wikiLinks.size(), ProgressBarStyle.ASCII)) {
+			try (ProgressBar pb = new ProgressBar("Verifying...", wikiLinks.size())) {
 				for (Future<String> future : futures) {
 					try {
 						String endpointUrl = future.get();

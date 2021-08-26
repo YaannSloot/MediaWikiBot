@@ -10,6 +10,7 @@ import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Properties;
 
@@ -34,8 +35,10 @@ import com.yaannsloot.mediawikibot.sources.endpoints.retrievers.FandomRetriever;
 import com.yaannsloot.mediawikibot.sources.endpoints.retrievers.GamepediaRetriever;
 import com.yaannsloot.mediawikibot.sources.endpoints.retrievers.WikistatsRetriever;
 
+import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.api.sharding.ShardManager;
+import net.dv8tion.jda.api.utils.MemberCachePolicy;
 
 public class MediaWikiBot {
 
@@ -234,8 +237,14 @@ public class MediaWikiBot {
 				logger.info("Loading shards...");
 
 				try {
-					shardmgr = new DefaultShardManagerBuilder(settings.getString("token")).setShardsTotal(-1)
-							.addEventListeners(new Events()).build();
+					shardmgr = DefaultShardManagerBuilder.createDefault(settings.getString("token"))
+							.setShardsTotal(-1)
+							.addEventListeners(new Events())
+							.enableIntents(EnumSet.allOf(GatewayIntent.class))
+							.disableIntents(GatewayIntent.GUILD_PRESENCES, GatewayIntent.GUILD_MEMBERS)
+							.setMemberCachePolicy(MemberCachePolicy.DEFAULT)
+							.build();
+
 				} catch (LoginException | IllegalArgumentException | JSONException e) {
 					e.printStackTrace();
 					if (e instanceof LoginException) {
